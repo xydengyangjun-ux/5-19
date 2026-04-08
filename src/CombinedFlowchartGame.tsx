@@ -30,17 +30,17 @@ const ITEMS = [
 ];
 
 const nodes = [
-  { id: 'node1', type: 'pill', x: 350, y: 40, w: 100, h: 30 },
-  { id: 'node2', type: 'rect', x: 350, y: 100, w: 140, h: 40 },
-  { id: 'node3', type: 'diamond', x: 350, y: 180, w: 160, h: 60 },
-  { id: 'node4', type: 'rect', x: 350, y: 270, w: 140, h: 40 },
-  { id: 'node5', type: 'diamond', x: 350, y: 360, w: 180, h: 60 },
-  { id: 'node6', type: 'diamond', x: 350, y: 460, w: 160, h: 60 },
-  { id: 'node7', type: 'rect', x: 180, y: 530, w: 140, h: 40 },
-  { id: 'node8', type: 'rect', x: 350, y: 600, w: 160, h: 40 },
-  { id: 'node9', type: 'rect', x: 550, y: 360, w: 160, h: 40 },
-  { id: 'node10', type: 'parallelogram', x: 350, y: 700, w: 180, h: 40 },
-  { id: 'node11', type: 'pill', x: 350, y: 780, w: 100, h: 30 },
+  { id: 'node1', type: 'pill', x: 350, y: 40, w: 120, h: 40 },
+  { id: 'node2', type: 'rect', x: 350, y: 110, w: 160, h: 45 },
+  { id: 'node3', type: 'diamond', x: 350, y: 200, w: 180, h: 70 },
+  { id: 'node4', type: 'rect', x: 350, y: 300, w: 160, h: 45 },
+  { id: 'node5', type: 'diamond', x: 350, y: 400, w: 200, h: 70 },
+  { id: 'node6', type: 'diamond', x: 350, y: 510, w: 180, h: 70 },
+  { id: 'node7', type: 'rect', x: 160, y: 590, w: 160, h: 45 },
+  { id: 'node8', type: 'rect', x: 350, y: 670, w: 180, h: 45 },
+  { id: 'node9', type: 'rect', x: 600, y: 400, w: 180, h: 45 },
+  { id: 'node10', type: 'parallelogram', x: 350, y: 780, w: 200, h: 45 },
+  { id: 'node11', type: 'pill', x: 350, y: 860, w: 120, h: 40 },
 ];
 
 const PREFILLED_NODES = ['node1', 'node8', 'node9', 'node10', 'node11'];
@@ -161,7 +161,7 @@ export default function CombinedFlowchartGame({ activeNode, onCompleteChange }: 
       {/* 右侧画布区 */}
       <div className="flex-1 relative overflow-hidden bg-[radial-gradient(#e2e8f0_1px,transparent_1px)] [background-size:20px_20px]">
         <div className="absolute inset-0 flex items-start justify-center overflow-hidden pt-4">
-          <div className="relative w-[800px] h-[850px]" style={{ transform: 'scale(0.85)', transformOrigin: 'top center' }}>
+          <div className="relative w-[800px] h-[950px]" style={{ transform: 'scale(0.75)', transformOrigin: 'top center' }}>
             {/* SVG Connections */}
             <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 0 }}>
               <defs>
@@ -171,43 +171,43 @@ export default function CombinedFlowchartGame({ activeNode, onCompleteChange }: 
               </defs>
               <g stroke="#a855f7" strokeWidth="2" fill="none" markerEnd="url(#arrow)">
                 {/* 1 to 2 */}
-                <line x1="350" y1="55" x2="350" y2="80" />
+                <line x1="350" y1="60" x2="350" y2="87.5" />
                 {/* 2 to 3 */}
-                <line x1="350" y1="120" x2="350" y2="150" />
+                <line x1="350" y1="132.5" x2="350" y2="165" />
                 {/* 3 to 4 (Yes) */}
-                <line x1="350" y1="210" x2="350" y2="250" />
+                <line x1="350" y1="235" x2="350" y2="277.5" />
                 {/* 3 to 10 (No) */}
-                <path d="M 430 180 L 720 180 L 720 700 L 440 700" />
+                <path d="M 440 200 L 780 200 L 780 757.5 L 460 757.5" />
                 {/* 10 to 11 */}
-                <line x1="350" y1="720" x2="350" y2="765" />
+                <line x1="350" y1="802.5" x2="350" y2="840" />
                 {/* 4 to 5 */}
-                <line x1="350" y1="290" x2="350" y2="330" />
+                <line x1="350" y1="322.5" x2="350" y2="365" />
                 {/* 5 to 6 (Yes) */}
-                <line x1="350" y1="390" x2="350" y2="430" />
+                <line x1="350" y1="435" x2="350" y2="475" />
                 {/* 5 to 9 (No) */}
-                <line x1="440" y1="360" x2="470" y2="360" />
+                <line x1="450" y1="400" x2="510" y2="400" />
                 {/* 9 to loop back to 3 */}
-                <path d="M 630 360 L 680 360 L 680 135 L 350 135" markerEnd="none" />
-                <line x1="350" y1="135" x2="350" y2="150" />
+                <path d="M 690 400 L 730 400 L 730 148 L 350 148" markerEnd="none" />
+                <line x1="350" y1="148" x2="350" y2="165" />
                 {/* 6 to 7 (Yes) */}
-                <path d="M 270 460 L 180 460 L 180 510" />
+                <path d="M 260 510 L 160 510 L 160 567.5" />
                 {/* 6 to merge (No) */}
-                <path d="M 430 460 L 480 460 L 480 570 L 350 570" markerEnd="none" />
+                <path d="M 440 510 L 490 510 L 490 640 L 350 640" markerEnd="none" />
                 {/* 7 to merge */}
-                <path d="M 180 550 L 180 570 L 350 570" markerEnd="none" />
+                <path d="M 160 612.5 L 160 640 L 350 640" markerEnd="none" />
                 {/* merge to 8 */}
-                <line x1="350" y1="570" x2="350" y2="580" />
+                <line x1="350" y1="640" x2="350" y2="647.5" />
                 {/* 8 to loop back to 5 */}
-                <path d="M 350 620 L 350 650 L 80 650 L 80 315 L 350 315" markerEnd="none" />
-                <line x1="350" y1="315" x2="350" y2="330" />
+                <path d="M 350 692.5 L 350 720 L 60 720 L 60 343 L 350 343" markerEnd="none" />
+                <line x1="350" y1="343" x2="350" y2="365" />
               </g>
               {/* Labels */}
-              <text x="360" y="235" fill="#333" fontSize="12" fontWeight="bold">是</text>
-              <text x="445" y="170" fill="#333" fontSize="12" fontWeight="bold">否</text>
-              <text x="360" y="415" fill="#333" fontSize="12" fontWeight="bold">是</text>
-              <text x="445" y="350" fill="#333" fontSize="12" fontWeight="bold">否</text>
-              <text x="220" y="450" fill="#333" fontSize="12" fontWeight="bold">是</text>
-              <text x="445" y="450" fill="#333" fontSize="12" fontWeight="bold">否</text>
+              <text x="360" y="260" fill="#333" fontSize="12" fontWeight="bold">是</text>
+              <text x="460" y="190" fill="#333" fontSize="12" fontWeight="bold">否</text>
+              <text x="360" y="460" fill="#333" fontSize="12" fontWeight="bold">是</text>
+              <text x="470" y="390" fill="#333" fontSize="12" fontWeight="bold">否</text>
+              <text x="210" y="500" fill="#333" fontSize="12" fontWeight="bold">是</text>
+              <text x="455" y="500" fill="#333" fontSize="12" fontWeight="bold">否</text>
             </svg>
 
             {/* Nodes */}
@@ -221,7 +221,7 @@ export default function CombinedFlowchartGame({ activeNode, onCompleteChange }: 
               return (
                 <div
                   key={node.id}
-                  className={`absolute transform -translate-x-1/2 -translate-y-1/2 transition-all duration-300 ${isFilled && !isPrefilled ? 'cursor-grab active:cursor-grabbing' : isPrefilled ? 'cursor-default' : 'cursor-pointer'} ${isActive ? 'ring-4 ring-red-500 shadow-[0_0_20px_rgba(239,68,68,0.8)] scale-110 z-10 rounded-xl' : ''}`}
+                  className={`absolute transform -translate-x-1/2 -translate-y-1/2 transition-all duration-300 z-10 ${isFilled && !isPrefilled ? 'cursor-grab active:cursor-grabbing' : isPrefilled ? 'cursor-default' : 'cursor-pointer'} ${isActive ? 'ring-4 ring-red-500 shadow-[0_0_20px_rgba(239,68,68,0.8)] scale-110 z-20 rounded-xl' : ''}`}
                   style={{ left: node.x, top: node.y, width: node.w, height: node.h }}
                   onDragOver={handleDragOver}
                   onDrop={(e) => {

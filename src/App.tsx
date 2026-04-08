@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import FlowchartGame from './FlowchartGame';
 import OuterFlowchartGame from './OuterFlowchartGame';
 import CombinedFlowchartGame from './CombinedFlowchartGame';
+import CodingTutor from './CodingTutor';
 
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -51,9 +52,7 @@ export default function App() {
   const [isFlowchart2Complete, setIsFlowchart2Complete] = useState(false);
   const [isFlowchart3Complete, setIsFlowchart3Complete] = useState(false);
   const [isVerificationMode, setIsVerificationMode] = useState(false);
-  
-  // 测试面板状态
-  const [showTestPanel, setShowTestPanel] = useState(false);
+  const [isCodingMode, setIsCodingMode] = useState(false);
 
   const log = (message: string) => {
     setLogs(prev => [...prev, message.startsWith('>') ? message : `> ${message}`]);
@@ -278,18 +277,30 @@ export default function App() {
       {/* 顶部导航 */}
       <div className="w-full max-w-5xl flex flex-col md:flex-row justify-between items-center mb-4 md:mb-6 gap-4">
         <h1 className="text-3xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400 drop-shadow-[0_0_15px_rgba(192,132,252,0.8)] tracking-wider text-center">
-          {isVerificationMode ? '🚀 冒泡排序验证模式' : '魔法卡牌对决：冒泡排序引擎'}
+          {isCodingMode ? '💻 AI 编程实战' : isVerificationMode ? '🚀 冒泡排序验证模式' : '魔法卡牌对决：冒泡排序引擎'}
         </h1>
-        {isVerificationMode && (
+        {isVerificationMode && !isCodingMode && (
           <div className="flex gap-2 bg-slate-800 p-1 rounded-xl border border-slate-700 shrink-0">
             <div className="px-6 py-2.5 rounded-lg font-bold bg-green-600 text-white shadow-[0_0_15px_rgba(22,163,74,0.6)]">
               ✅ 验证模式
             </div>
           </div>
         )}
+        {isCodingMode && (
+          <button 
+            onClick={() => setIsCodingMode(false)}
+            className="px-6 py-2.5 rounded-lg font-bold bg-slate-700 hover:bg-slate-600 text-white border border-slate-500 transition-colors shrink-0"
+          >
+            返回流程图
+          </button>
+        )}
       </div>
 
-      <div className="w-full flex gap-8 justify-center max-w-4xl flex-col items-center">
+      <div className={isCodingMode ? 'w-full flex justify-center' : 'hidden'}>
+        <CodingTutor />
+      </div>
+
+      <div className={!isCodingMode ? 'w-full flex gap-8 justify-center flex-col items-center' : 'hidden'}>
         {/* 上方：排序游戏区 */}
         <div className="w-full flex flex-col items-center relative">
           {/* 未完成流程图时的遮罩层 */}
@@ -337,6 +348,7 @@ export default function App() {
                   setIsFlowchart1Complete(false);
                   setIsFlowchart2Complete(false);
                   setIsFlowchart3Complete(false);
+                  setIsCodingMode(false);
                 }} disabled={isAnimating || (!isVerificationMode && flowchartLevel === 1 && !isFlowchart1Complete)} className="px-6 py-3 rounded-full bg-slate-700 hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 hover:scale-105 hover:shadow-[0_0_20px_rgba(71,85,105,0.8)] font-semibold text-lg border border-slate-500/30">
                   🔄 重新发牌
                 </button>
@@ -352,6 +364,15 @@ export default function App() {
                 className="px-6 py-3 rounded-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-400 hover:to-emerald-500 transition-all font-bold text-white shadow-[0_0_15px_rgba(16,185,129,0.5)] animate-pulse"
               >
                 🚀 开启验证
+              </button>
+            )}
+
+            {isFlowchart3Complete && (
+              <button 
+                onClick={() => setIsCodingMode(true)} 
+                className="px-6 py-3 rounded-full bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-400 hover:to-indigo-500 transition-all font-bold text-white shadow-[0_0_15px_rgba(168,85,247,0.5)] animate-pulse ml-2"
+              >
+                💻 进入代码实战
               </button>
             )}
           </div>
@@ -485,45 +506,6 @@ export default function App() {
                 开始操作
               </button>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* 测试面板 Toggle 按钮 */}
-      <button 
-        onClick={() => setShowTestPanel(!showTestPanel)}
-        className="fixed bottom-4 right-4 z-50 w-10 h-10 bg-slate-800 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-slate-700 transition-colors"
-        title="测试面板"
-      >
-        🛠
-      </button>
-
-      {/* 测试面板 */}
-      {showTestPanel && (
-        <div className="fixed bottom-16 right-4 z-50 bg-white p-4 rounded-lg shadow-2xl border border-slate-200 text-sm w-64 flex flex-col gap-3">
-          <div className="font-bold text-slate-700 border-b pb-2">🛠 测试面板</div>
-          
-          <div className="flex flex-col gap-1">
-            <span className="text-xs text-slate-500">跳转流程图关卡：</span>
-            <div className="flex gap-2">
-              <button onClick={() => setFlowchartLevel(1)} className={`flex-1 py-1 rounded ${flowchartLevel === 1 ? 'bg-blue-500 text-white' : 'bg-blue-100 hover:bg-blue-200'}`}>L1</button>
-              <button onClick={() => setFlowchartLevel(2)} className={`flex-1 py-1 rounded ${flowchartLevel === 2 ? 'bg-blue-500 text-white' : 'bg-blue-100 hover:bg-blue-200'}`}>L2</button>
-              <button onClick={() => setFlowchartLevel(3)} className={`flex-1 py-1 rounded ${flowchartLevel === 3 ? 'bg-blue-500 text-white' : 'bg-blue-100 hover:bg-blue-200'}`}>L3</button>
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-1">
-            <span className="text-xs text-slate-500">验证模式：</span>
-            <button onClick={() => setIsVerificationMode(!isVerificationMode)} className={`w-full py-1 rounded ${isVerificationMode ? 'bg-purple-500 text-white' : 'bg-purple-100 text-purple-700 hover:bg-purple-200'}`}>
-              {isVerificationMode ? '关闭验证模式' : '开启验证模式'}
-            </button>
-          </div>
-
-          <div className="flex flex-col gap-1">
-            <span className="text-xs text-slate-500">卡牌操作：</span>
-            <button onClick={() => handleDeal(6)} className="w-full py-1 bg-orange-100 text-orange-700 rounded hover:bg-orange-200">
-              发牌 (6张)
-            </button>
           </div>
         </div>
       )}
