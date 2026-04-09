@@ -139,6 +139,17 @@ export default function CombinedFlowchartGame({ activeNode, onCompleteChange }: 
           <p className="text-purple-900 font-medium">请将内层循环（单次冒泡）和外层循环（多轮冒泡）整合到一张完整的流程图中！</p>
         </div>
 
+        {isAllCorrect && (
+          <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-xs text-green-800 leading-relaxed animate-in fade-in slide-in-from-left-4 duration-500">
+            <p className="font-bold mb-1">算法描述：</p>
+            <p className="text-gray-600">
+              冒泡排序通过两层循环实现：<br/>
+              <strong>外层循环</strong>控制排序的轮数，每轮将当前未排序部分的最大值“冒泡”到最后。<br/>
+              <strong>内层循环</strong>负责在每一轮中，从头到尾依次比较相邻的两个元素，如果前一个比后一个大，就交换它们的位置。
+            </p>
+          </div>
+        )}
+
         <div className="flex-1 overflow-y-auto space-y-3 pr-2">
           {availableItems.map((item, idx) => (
             <div
@@ -221,7 +232,7 @@ export default function CombinedFlowchartGame({ activeNode, onCompleteChange }: 
               return (
                 <div
                   key={node.id}
-                  className={`absolute transform -translate-x-1/2 -translate-y-1/2 transition-all duration-300 z-10 ${isFilled && !isPrefilled ? 'cursor-grab active:cursor-grabbing' : isPrefilled ? 'cursor-default' : 'cursor-pointer'} ${isActive ? 'ring-4 ring-red-500 shadow-[0_0_20px_rgba(239,68,68,0.8)] scale-110 z-20 rounded-xl' : ''}`}
+                  className={`absolute transform -translate-x-1/2 -translate-y-1/2 transition-all duration-300 z-10 ${isFilled && !isPrefilled ? 'cursor-grab active:cursor-grabbing' : isPrefilled ? 'cursor-default' : 'cursor-pointer'}`}
                   style={{ left: node.x, top: node.y, width: node.w, height: node.h }}
                   onDragOver={handleDragOver}
                   onDrop={(e) => {

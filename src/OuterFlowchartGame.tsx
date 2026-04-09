@@ -21,6 +21,15 @@ const ITEMS = [
   '按顺序输出 6 个数',
 ];
 
+const shuffleArray = (array: string[]) => {
+  const newArray = [...array];
+  for (let i = newArray.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+  }
+  return newArray;
+};
+
 const nodes = [
   { id: 'node1', type: 'pill', x: 350, y: 50, w: 120, h: 40 },
   { id: 'node2', type: 'rect', x: 350, y: 130, w: 160, h: 50 },
@@ -34,10 +43,12 @@ const nodes = [
 interface Props {
   activeNode?: string | null;
   onCompleteChange?: (isComplete: boolean) => void;
+  isAutoSorting?: boolean;
 }
 
-export default function OuterFlowchartGame({ activeNode, onCompleteChange }: Props) {
+export default function OuterFlowchartGame({ activeNode, onCompleteChange, isAutoSorting }: Props) {
   const [placed, setPlaced] = useState<Record<string, string>>({});
+  const [shuffledItems] = useState(() => shuffleArray(ITEMS));
   const [draggedItem, setDraggedItem] = useState<string | null>(null);
   const [aiPrompt, setAiPrompt] = useState<{text: string; id: number} | null>(null);
   const [hoveredNode, setHoveredNode] = useState<string | null>(null);
@@ -111,12 +122,12 @@ export default function OuterFlowchartGame({ activeNode, onCompleteChange }: Pro
     });
   };
 
-  const availableItems = ITEMS.filter(item => !Object.values(placed).includes(item));
+  const availableItems = shuffledItems.filter(item => !Object.values(placed).includes(item));
 
   return (
     <div className="flex h-full w-full bg-slate-50 relative">
       {/* 左侧选项栏 */}
-      <div className="w-64 bg-white border-r border-slate-200 p-4 flex flex-col shadow-sm z-10">
+      <div className={`w-64 bg-white border-r border-slate-200 p-4 flex flex-col shadow-sm z-10 transition-all duration-300 ${isAutoSorting ? 'w-0 p-0 overflow-hidden opacity-0 border-none' : ''}`}>
         <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center">
           <span className="mr-2">🧩</span> 流程图拼图
         </h3>
@@ -148,8 +159,8 @@ export default function OuterFlowchartGame({ activeNode, onCompleteChange }: Pro
 
       {/* 右侧画布区 */}
       <div className="flex-1 relative overflow-hidden bg-[radial-gradient(#e2e8f0_1px,transparent_1px)] [background-size:20px_20px]">
-        <div className="absolute inset-0 flex items-start justify-center overflow-hidden pt-4">
-          <div className="relative w-[700px] h-[700px]" style={{ transform: 'scale(0.9)', transformOrigin: 'top center' }}>
+        <div className="absolute inset-0 flex items-start justify-center overflow-hidden pt-4 transition-all duration-500">
+          <div className={`relative w-[700px] h-[700px] transition-all duration-500 ${isAutoSorting ? '-ml-16 md:-ml-32' : ''}`} style={{ transform: 'scale(0.9)', transformOrigin: 'top center' }}>
             {/* SVG Connections */}
             <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 0 }}>
               <defs>
@@ -211,7 +222,7 @@ export default function OuterFlowchartGame({ activeNode, onCompleteChange }: Pro
 
                   {node.type === 'pill' && (
                     <div key={content} className={`w-full h-full text-sm rounded-full flex items-center justify-center border-2 transition-all shadow-sm ${
-                      activeNode === node.id ? 'ring-4 ring-red-500 shadow-[0_0_20px_rgba(239,68,68,0.8)] z-10 scale-110 ' : ''
+                      (isAllCorrect && activeNode === node.id) ? 'ring-4 ring-red-500 shadow-[0_0_20px_rgba(239,68,68,0.8)] z-10 scale-110 ' : ''
                     } ${
                       isFilled 
                         ? (isCorrect ? 'bg-[#bbf7d0] border-green-500 text-green-800 font-bold' : 'bg-red-50 border-red-500 text-red-700 font-bold animate-error-shake') 
@@ -223,7 +234,7 @@ export default function OuterFlowchartGame({ activeNode, onCompleteChange }: Pro
                   
                   {node.type === 'rect' && (
                     <div key={content} className={`w-full h-full text-sm flex items-center justify-center border-2 transition-all shadow-sm ${
-                      activeNode === node.id ? 'ring-4 ring-red-500 shadow-[0_0_20px_rgba(239,68,68,0.8)] z-10 scale-110 ' : ''
+                      (isAllCorrect && activeNode === node.id) ? 'ring-4 ring-red-500 shadow-[0_0_20px_rgba(239,68,68,0.8)] z-10 scale-110 ' : ''
                     } ${
                       isFilled 
                         ? (isCorrect ? 'bg-white border-[#0ea5e9] text-sky-900 font-bold' : 'bg-red-50 border-red-500 text-red-700 font-bold animate-error-shake') 
@@ -235,13 +246,13 @@ export default function OuterFlowchartGame({ activeNode, onCompleteChange }: Pro
 
                   {node.type === 'diamond' && (
                     <div key={content} className={`relative w-full h-full flex items-center justify-center drop-shadow-sm transition-all ${
-                      activeNode === node.id ? 'scale-110 z-10 drop-shadow-[0_0_15px_rgba(239,68,68,0.8)]' : ''
+                      (isAllCorrect && activeNode === node.id) ? 'scale-110 z-10 drop-shadow-[0_0_15px_rgba(239,68,68,0.8)]' : ''
                     }`}>
                       <svg className="absolute inset-0 w-full h-full" preserveAspectRatio="none" viewBox="0 0 100 100">
                         <polygon points="50,0 100,50 50,100 0,50" 
                           fill={isFilled ? (isCorrect ? '#bae6fd' : '#fef2f2') : 'rgba(255,255,255,0.8)'} 
-                          stroke={activeNode === node.id ? '#ef4444' : isFilled ? (isCorrect ? '#0ea5e9' : '#ef4444') : '#7dd3fc'} 
-                          strokeWidth={activeNode === node.id ? "4" : "2"} 
+                          stroke={(isAllCorrect && activeNode === node.id) ? '#ef4444' : isFilled ? (isCorrect ? '#0ea5e9' : '#ef4444') : '#7dd3fc'} 
+                          strokeWidth={(isAllCorrect && activeNode === node.id) ? "4" : "2"} 
                           strokeDasharray={!isFilled ? "4 4" : "0"}
                           className="transition-all"
                         />
@@ -258,13 +269,13 @@ export default function OuterFlowchartGame({ activeNode, onCompleteChange }: Pro
 
                   {node.type === 'parallelogram' && (
                     <div key={content} className={`relative w-full h-full flex items-center justify-center drop-shadow-sm transition-all ${
-                      activeNode === node.id ? 'scale-105 z-10 drop-shadow-[0_0_15px_rgba(56,189,248,0.8)]' : ''
+                      (isAllCorrect && activeNode === node.id) ? 'scale-105 z-10 drop-shadow-[0_0_15px_rgba(56,189,248,0.8)]' : ''
                     }`}>
                       <svg className="absolute inset-0 w-full h-full" preserveAspectRatio="none" viewBox="0 0 100 100">
                         <polygon points="20,0 100,0 80,100 0,100" 
                           fill={isFilled ? (isCorrect ? '#bae6fd' : '#fef2f2') : 'rgba(255,255,255,0.8)'} 
-                          stroke={activeNode === node.id ? '#38bdf8' : isFilled ? (isCorrect ? '#0ea5e9' : '#ef4444') : '#7dd3fc'} 
-                          strokeWidth={activeNode === node.id ? "4" : "2"} 
+                          stroke={(isAllCorrect && activeNode === node.id) ? '#38bdf8' : isFilled ? (isCorrect ? '#0ea5e9' : '#ef4444') : '#7dd3fc'} 
+                          strokeWidth={(isAllCorrect && activeNode === node.id) ? "4" : "2"} 
                           strokeDasharray={!isFilled ? "4 4" : "0"}
                           className="transition-all"
                         />

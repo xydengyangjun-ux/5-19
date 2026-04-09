@@ -51,8 +51,9 @@ export default function App() {
   const [isFlowchart1Complete, setIsFlowchart1Complete] = useState(false);
   const [isFlowchart2Complete, setIsFlowchart2Complete] = useState(false);
   const [isFlowchart3Complete, setIsFlowchart3Complete] = useState(false);
-  const [isVerificationMode, setIsVerificationMode] = useState(false);
   const [isCodingMode, setIsCodingMode] = useState(false);
+  const [isAutoSorting, setIsAutoSorting] = useState(false);
+  const [autoSortSpeed, setAutoSortSpeed] = useState<0.5 | 1>(1);
 
   const log = (message: string) => {
     setLogs(prev => [...prev, message.startsWith('>') ? message : `> ${message}`]);
@@ -109,12 +110,29 @@ export default function App() {
     logEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }, [logs]);
 
-  const handleDeal = async (numCards: number = 10, isVerification: boolean = false) => {
-    if (isAnimating) return;
-    if (isVerification) {
-      setIsVerificationMode(true);
+  useEffect(() => {
+    if (isAutoSorting && flowchartLevel === 2 && !isAnimating && isManualComparing) {
+      const timer = setTimeout(() => {
+        const card1 = cards.find(c => c.index === j);
+        const card2 = cards.find(c => c.index === j + 1);
+        if (card1 && card2) {
+          if (card1.value > card2.value) {
+            handleManualSwap();
+          } else {
+            handleNextCompare();
+          }
+        } else {
+          handleNextCompare();
+        }
+      }, autoSortSpeed === 1 ? 600 : 1200);
+      return () => clearTimeout(timer);
     }
+  }, [isAutoSorting, flowchartLevel, isAnimating, isManualComparing, j, cards, autoSortSpeed]);
+
+  const handleDeal = async (numCards: number = 8) => {
+    if (isAnimating) return;
     setIsAnimating(true);
+    setIsAutoSorting(false);
     setActiveNode('node2');
     setHasDealt(false);
     setIsManualComparing(false);
@@ -151,9 +169,7 @@ export default function App() {
     log(`> 请判断是否需要交换？`);
     
     setIsAnimating(false);
-    if (!isVerification) {
-      setShowStartModal(true);
-    }
+    setShowStartModal(true);
   };
 
   const handleManualSwap = async () => {
@@ -234,6 +250,7 @@ export default function App() {
         
         if (flowchartLevel === 2) {
           setFlowchartLevel(3);
+          setIsAutoSorting(false);
           setTimeout(() => {
             log('✨ 排序完成！请整合内层循环和外层循环的流程图到一大张中！');
           }, 1000);
@@ -273,19 +290,12 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0f172a] text-white font-sans flex flex-col items-center p-4 md:p-8 overflow-hidden">
+    <div className="min-h-screen bg-[#0f172a] text-white font-sans flex flex-col items-center pt-2 pb-8 px-4 overflow-hidden">
       {/* 顶部导航 */}
       <div className="w-full max-w-5xl flex flex-col md:flex-row justify-between items-center mb-4 md:mb-6 gap-4">
-        <h1 className="text-3xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400 drop-shadow-[0_0_15px_rgba(192,132,252,0.8)] tracking-wider text-center">
-          {isCodingMode ? '💻 AI 编程实战' : isVerificationMode ? '🚀 冒泡排序验证模式' : '魔法卡牌对决：冒泡排序引擎'}
+        <h1 className="text-2xl md:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400 drop-shadow-[0_0_15px_rgba(192,132,252,0.8)] tracking-wider text-center">
+          {isCodingMode ? '💻 AI 编程实战' : '魔法卡牌对决：冒泡排序引擎'}
         </h1>
-        {isVerificationMode && !isCodingMode && (
-          <div className="flex gap-2 bg-slate-800 p-1 rounded-xl border border-slate-700 shrink-0">
-            <div className="px-6 py-2.5 rounded-lg font-bold bg-green-600 text-white shadow-[0_0_15px_rgba(22,163,74,0.6)]">
-              ✅ 验证模式
-            </div>
-          </div>
-        )}
         {isCodingMode && (
           <button 
             onClick={() => setIsCodingMode(false)}
@@ -300,11 +310,11 @@ export default function App() {
         <CodingTutor />
       </div>
 
-      <div className={!isCodingMode ? 'w-full flex gap-8 justify-center flex-col items-center' : 'hidden'}>
+      <div className={!isCodingMode ? `w-full flex gap-8 justify-center ${isAutoSorting ? 'flex-col xl:flex-row xl:items-start' : 'flex-col items-center'}` : 'hidden'}>
         {/* 上方：排序游戏区 */}
-        <div className="w-full flex flex-col items-center relative">
+        <div className={`w-full flex flex-col items-center relative transition-all duration-500 ${isAutoSorting ? 'xl:w-1/2 xl:scale-90 xl:origin-top' : ''}`}>
           {/* 未完成流程图时的遮罩层 */}
-          {!isVerificationMode && ((flowchartLevel === 1 && !isFlowchart1Complete) || (flowchartLevel === 2 && !isFlowchart2Complete) || (flowchartLevel === 3 && !isFlowchart3Complete)) && (
+          {((flowchartLevel === 1 && !isFlowchart1Complete) || (flowchartLevel === 2 && !isFlowchart2Complete) || (flowchartLevel === 3 && !isFlowchart3Complete)) && (
             <div className="absolute inset-0 z-30 bg-slate-900/60 backdrop-blur-sm rounded-3xl flex flex-col items-center justify-center border border-sky-500/30 shadow-[0_0_30px_rgba(14,165,233,0.2)]">
               <div className="text-6xl mb-4 animate-bounce">🧩</div>
               <h3 className="text-2xl font-bold text-sky-300 mb-2 drop-shadow-md text-center px-4">
@@ -319,18 +329,35 @@ export default function App() {
           {/* 控制区 */}
           <div className="flex flex-wrap justify-center gap-4 mb-4 md:mb-6 w-full min-h-[50px]">
             {!hasDealt ? (
-              <button onClick={() => handleDeal(isVerificationMode ? 6 : 10, isVerificationMode)} disabled={isAnimating || (!isVerificationMode && flowchartLevel === 1 && !isFlowchart1Complete)} className="px-8 py-4 rounded-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 hover:scale-110 hover:shadow-[0_0_30px_rgba(245,158,11,0.8)] font-bold text-xl border border-orange-300/50 animate-bounce">
+              <button onClick={() => handleDeal(8)} disabled={isAnimating || (flowchartLevel === 1 && !isFlowchart1Complete)} className="px-8 py-4 rounded-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 hover:scale-110 hover:shadow-[0_0_30px_rgba(245,158,11,0.8)] font-bold text-xl border border-orange-300/50 animate-bounce">
                 🃏 召唤卡牌
               </button>
             ) : isManualComparing ? (
-              <>
-                <button onClick={handleManualSwap} disabled={isAnimating || (!isVerificationMode && flowchartLevel === 1 && !isFlowchart1Complete) || (!isVerificationMode && flowchartLevel === 2 && !isFlowchart2Complete)} className="px-6 py-3 rounded-full bg-orange-600 hover:bg-orange-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 hover:scale-105 hover:shadow-[0_0_20px_rgba(234,88,12,0.8)] font-semibold text-lg border border-orange-400/30">
-                  🔄 交换
-                </button>
-                <button onClick={handleNextCompare} disabled={isAnimating || (!isVerificationMode && flowchartLevel === 1 && !isFlowchart1Complete) || (!isVerificationMode && flowchartLevel === 2 && !isFlowchart2Complete)} className="px-6 py-3 rounded-full bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 hover:scale-105 hover:shadow-[0_0_20px_rgba(37,99,235,0.8)] font-semibold text-lg border border-blue-400/30">
-                  ➡️ 比较下一个数
-                </button>
-              </>
+              flowchartLevel === 2 ? (
+                <>
+                  <button onClick={() => setIsAutoSorting(true)} disabled={isAnimating || isAutoSorting || !isFlowchart2Complete} className="px-6 py-3 rounded-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 hover:scale-105 hover:shadow-[0_0_20px_rgba(79,70,229,0.8)] font-semibold text-lg border border-indigo-400/30">
+                    ▶️ 自动排序
+                  </button>
+                  <select 
+                    value={autoSortSpeed} 
+                    onChange={(e) => setAutoSortSpeed(Number(e.target.value) as 0.5 | 1)}
+                    className="px-4 py-2 rounded-full border border-slate-300 bg-white text-slate-700 font-bold"
+                    disabled={isAutoSorting}
+                  >
+                    <option value={1}>1.0x 速度</option>
+                    <option value={0.5}>0.5x 速度</option>
+                  </select>
+                </>
+              ) : (
+                <>
+                  <button onClick={handleManualSwap} disabled={isAnimating || (flowchartLevel === 1 && !isFlowchart1Complete) || (flowchartLevel === 2 && !isFlowchart2Complete)} className="px-6 py-3 rounded-full bg-orange-600 hover:bg-orange-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 hover:scale-105 hover:shadow-[0_0_20px_rgba(234,88,12,0.8)] font-semibold text-lg border border-orange-400/30">
+                    🔄 交换
+                  </button>
+                  <button onClick={handleNextCompare} disabled={isAnimating || (flowchartLevel === 1 && !isFlowchart1Complete) || (flowchartLevel === 2 && !isFlowchart2Complete)} className="px-6 py-3 rounded-full bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 hover:scale-105 hover:shadow-[0_0_20px_rgba(37,99,235,0.8)] font-semibold text-lg border border-blue-400/30">
+                    ➡️ 比较下一个数
+                  </button>
+                </>
+              )
             ) : (
               <>
                 <button onClick={() => {
@@ -344,36 +371,14 @@ export default function App() {
                   setIsManualComparing(false);
                   setActiveNode('node1');
                   setFlowchartLevel(1);
-                  setIsVerificationMode(false);
                   setIsFlowchart1Complete(false);
                   setIsFlowchart2Complete(false);
                   setIsFlowchart3Complete(false);
                   setIsCodingMode(false);
-                }} disabled={isAnimating || (!isVerificationMode && flowchartLevel === 1 && !isFlowchart1Complete)} className="px-6 py-3 rounded-full bg-slate-700 hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 hover:scale-105 hover:shadow-[0_0_20px_rgba(71,85,105,0.8)] font-semibold text-lg border border-slate-500/30">
+                }} disabled={isAnimating || (flowchartLevel === 1 && !isFlowchart1Complete)} className="px-6 py-3 rounded-full bg-slate-700 hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 hover:scale-105 hover:shadow-[0_0_20px_rgba(71,85,105,0.8)] font-semibold text-lg border border-slate-500/30">
                   🔄 重新发牌
                 </button>
               </>
-            )}
-            
-            {isFlowchart3Complete && !isVerificationMode && (
-              <button 
-                onClick={() => {
-                  setIsVerificationMode(true);
-                  handleDeal(6, true);
-                }} 
-                className="px-6 py-3 rounded-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-400 hover:to-emerald-500 transition-all font-bold text-white shadow-[0_0_15px_rgba(16,185,129,0.5)] animate-pulse"
-              >
-                🚀 开启验证
-              </button>
-            )}
-
-            {isFlowchart3Complete && (
-              <button 
-                onClick={() => setIsCodingMode(true)} 
-                className="px-6 py-3 rounded-full bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-400 hover:to-indigo-500 transition-all font-bold text-white shadow-[0_0_15px_rgba(168,85,247,0.5)] animate-pulse ml-2"
-              >
-                💻 进入代码实战
-              </button>
             )}
           </div>
 
@@ -451,36 +456,37 @@ export default function App() {
         </div>
 
         {/* 下方：流程图游戏区 */}
-        <div className="w-full flex flex-col items-center relative">
+        <div className={`w-full flex flex-col items-center relative transition-all duration-500 ${isAutoSorting ? 'xl:w-1/2 xl:scale-90 xl:origin-top' : ''}`}>
             {/* 连接虚线指示器 (仅在大屏幕显示) */}
-            {!isVerificationMode && (
-              <div className="hidden xl:flex absolute left-1/2 -top-8 h-8 w-0 border-l-4 border-dashed border-sky-400 animate-pulse z-20">
-                <div className="absolute -bottom-2.5 -left-2 text-sky-400 rotate-90">▶</div>
-              </div>
-            )}
+            <div className="hidden xl:flex absolute left-1/2 -top-8 h-8 w-0 border-l-4 border-dashed border-sky-400 animate-pulse z-20">
+              <div className="absolute -bottom-2.5 -left-2 text-sky-400 rotate-90">▶</div>
+            </div>
             
             <div className="w-full bg-white rounded-3xl overflow-hidden shadow-[0_0_40px_rgba(14,165,233,0.2)] border border-slate-700 flex flex-col h-[800px]">
               {flowchartLevel === 1 && (
                 <FlowchartGame activeNode={hasDealt ? activeNode : null} onCompleteChange={setIsFlowchart1Complete} />
               )}
               {flowchartLevel === 2 && (
-                <OuterFlowchartGame activeNode={hasDealt ? activeNode : null} onCompleteChange={setIsFlowchart2Complete} />
+                <OuterFlowchartGame activeNode={hasDealt ? activeNode : null} onCompleteChange={setIsFlowchart2Complete} isAutoSorting={isAutoSorting} />
               )}
               {flowchartLevel === 3 && (
                 <CombinedFlowchartGame 
-                  activeNode={isVerificationMode && hasDealt ? (
-                    activeNode === 'node2' ? 'node2' :
-                    activeNode === 'node4' ? 'node6' :
-                    activeNode === 'node5' ? 'node7' :
-                    activeNode === 'node6' ? 'node8' :
-                    activeNode === 'node3' ? 'node5' :
-                    activeNode === 'node7' ? 'node10' :
-                    activeNode
-                  ) : (hasDealt ? activeNode : undefined)} 
+                  activeNode={hasDealt ? activeNode : undefined} 
                   onCompleteChange={setIsFlowchart3Complete} 
                 />
               )}
             </div>
+            
+            {isFlowchart3Complete && (
+              <div className="mt-8 w-full flex justify-center">
+                <button 
+                  onClick={() => setIsCodingMode(true)} 
+                  className="px-10 py-4 rounded-full bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-400 hover:to-indigo-500 transition-all font-bold text-white text-xl shadow-[0_0_25px_rgba(168,85,247,0.6)] animate-bounce"
+                >
+                  💻 进入代码实战
+                </button>
+              </div>
+            )}
           </div>
       </div>
 
